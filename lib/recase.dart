@@ -120,10 +120,14 @@ class ReCase {
       // coordinating conjunctions
       'and',
       'but',
+      'else',
       'for',
-      // 'nor', // not NYT-style
+      'nor',
       'or',
       // 'so', // not NYT-style
+      'then',
+      'when',
+      'with',
       'yet',
       // short prepositions (< 4 chars)
       'as',
@@ -138,27 +142,30 @@ class ReCase {
       'per',
       'to',
       // 'up', // not NYT-style
-      'v.',
+      'v',
       'via',
-      'vs.'
+      'vs'
     ];
     List<String> punctuationList = [':', '--', '.', '?', '!'];
 
     // apply Title Case
-    words = words.asMap().entries.map((word) {
-      var isFirstWord = word.key == 0;
-      var isAfterPunctuation =
-          !isFirstWord && punctuationList.contains(words[word.key - 1]);
-      var isExcluded = exclusionListEng.contains(word.value);
+    words = words.asMap().entries.map((entry) {
+      int index = entry.key;
+      String word = entry.value;
 
-      // If NOT first word exception AND is NOT after punctuation AND is part of the exclusion list
-      if (!isFirstWord && !isAfterPunctuation && isExcluded) {
-        // return word unchanged
-        return word.value;
-      }
+      bool isAfterPunctuation = index > 0 && punctuationList.any(
+          (punctuation) => words[index - 1].endsWith(punctuation)
+      );
+      bool isExcluded = exclusionListEng.any(
+          (excluded) => excluded == word.toLowerCase()
+      );
+      bool isFirstOrLast = index == 0 || index == words.length - 1;
+      bool isNumber = RegExp(r'^\d+$').hasMatch(word);
+      bool shouldBeCapitalized = 
+          (isAfterPunctuation || !isExcluded || isFirstOrLast) 
+          && !isNumber;
 
-      // capitalize first letter of word
-      return _upperCaseFirstLetter(word.value);
+      return shouldBeCapitalized ? _upperCaseFirstLetter(word) : word;
     }).toList();
 
     // rejoin words into sentence string
